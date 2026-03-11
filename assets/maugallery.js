@@ -1,4 +1,11 @@
 (function($) {
+
+  /**
+   * Initialise la galerie sur l'élément sélectionné en appliquant
+   * les options fournies (colonnes, lightbox, tags, etc.).
+   * Parcourt chaque item de la galerie pour les mettre en forme,
+   * les déplacer dans le wrapper de ligne, et collecter les tags.
+   */
   $.fn.mauGallery = function(options) {
     var options = $.extend($.fn.mauGallery.defaults, options);
     var tagsCollection = [];
@@ -40,6 +47,12 @@
       $(this).fadeIn(500);
     });
   };
+
+  /**
+   * Valeurs par défaut du plugin.
+   * Définit le comportement initial si aucune option n'est fournie :
+   * 3 colonnes, lightbox activée, tags affichés en bas, navigation activée.
+   */
   $.fn.mauGallery.defaults = {
     columns: 3,
     lightBox: true,
@@ -48,6 +61,13 @@
     tagsPosition: "bottom",
     navigation: true
   };
+
+  /**
+   * Initialise les écouteurs d'événements de la galerie.
+   * Gère les clics sur les items (ouverture lightbox),
+   * les clics sur les liens de navigation par tag,
+   * ainsi que les boutons précédent/suivant de la lightbox.
+   */
   $.fn.mauGallery.listeners = function(options) {
     $(".gallery-item").on("click", function() {
       if (options.lightBox && $(this).prop("tagName") === "IMG") {
@@ -65,7 +85,14 @@
       $.fn.mauGallery.methods.nextImage(options.lightboxId)
     );
   };
+
   $.fn.mauGallery.methods = {
+
+    /**
+     * Crée un wrapper de type row Bootstrap dans la galerie.
+     * Vérifie d'abord que le wrapper n'existe pas déjà
+     * pour éviter les doublons lors de réinitialisations.
+     */
     createRowWrapper(element) {
       if (
         !element
@@ -76,6 +103,13 @@
         element.append('<div class="gallery-items-row row"></div>');
       }
     },
+
+    /**
+     * Enveloppe un item de galerie dans une colonne Bootstrap.
+     * Accepte un nombre entier (colonnes fixes) ou un objet
+     * avec des breakpoints responsives (xs, sm, md, lg, xl).
+     * Affiche une erreur si le type fourni n'est pas supporté.
+     */
     wrapItemInColumn(element, columns) {
       if (columns.constructor === Number) {
         element.wrap(
@@ -105,20 +139,43 @@
         );
       }
     },
+
+    /**
+     * Déplace un item de galerie dans le wrapper de ligne.
+     * Permet d'assurer que tous les éléments sont regroupés
+     * correctement dans la structure Bootstrap row/col.
+     */
     moveItemInRowWrapper(element) {
       element.appendTo(".gallery-items-row");
     },
+
+    /**
+     * Rend une image responsive en ajoutant la classe Bootstrap "img-fluid".
+     * S'applique uniquement si l'élément est une balise IMG.
+     */
     responsiveImageItem(element) {
       if (element.prop("tagName") === "IMG") {
         element.addClass("img-fluid");
       }
     },
+
+    /**
+     * Ouvre la lightbox modale et affiche l'image cliquée.
+     * Met à jour le src de l'image dans la modale puis
+     * déclenche l'affichage via Bootstrap modal toggle.
+     */
     openLightBox(element, lightboxId) {
       $(`#${lightboxId}`)
         .find(".lightboxImage")
         .attr("src", element.attr("src"));
       $(`#${lightboxId}`).modal("toggle");
     },
+
+    /**
+     * Affiche l'image précédente dans la lightbox.
+     * Recherche l'image actuellement affichée, puis construit
+     * la collection d'images selon le tag actif.
+     */
     prevImage() {
       let activeImage = null;
       $("img.gallery-item").each(function() {
@@ -150,7 +207,7 @@
 
       $(imagesCollection).each(function(i) {
         if ($(activeImage).attr("src") === $(this).attr("src")) {
-          index = i ;
+          index = i - 1;
         }
       });
       next =
@@ -158,6 +215,12 @@
         imagesCollection[imagesCollection.length - 1];
       $(".lightboxImage").attr("src", $(next).attr("src"));
     },
+
+    /**
+     * Affiche l'image suivante dans la lightbox.
+     * Recherche l'image actuellement affichée, puis construit
+     * la collection d'images selon le tag actif.
+     */
     nextImage() {
       let activeImage = null;
       $("img.gallery-item").each(function() {
@@ -192,9 +255,16 @@
           index = i;
         }
       });
-      next = imagesCollection[index] || imagesCollection[0];
+      next = imagesCollection[index + 1] || imagesCollection[0];
       $(".lightboxImage").attr("src", $(next).attr("src"));
     },
+
+    /**
+     * Génère et insère la modale Bootstrap servant de lightbox.
+     * Utilise l'identifiant fourni ou "galleryLightbox" par défaut.
+     * Ajoute les boutons de navigation précédent/suivant si l'option
+     * navigation est activée.
+    */
     createLightBox(gallery, lightboxId, navigation) {
       gallery.append(`<div class="modal fade" id="${
         lightboxId ? lightboxId : "galleryLightbox"
@@ -218,6 +288,13 @@
                 </div>
             </div>`);
     },
+
+    /**
+     * Affiche la barre de filtrage par tags.
+     * Génère dynamiquement les boutons de filtre à partir
+     * de la collection de tags collectés lors de l'initialisation.
+     * Insère la barre en haut ou en bas de la galerie selon l'option tagsPosition.
+     */
     showItemTags(gallery, position, tags) {
       var tagItems =
         '<li class="nav-item"><span class="nav-link active active-tag"  data-images-toggle="all">Tous</span></li>';
@@ -235,6 +312,13 @@
         console.error(`Unknown tags position: ${position}`);
       }
     },
+
+    /**
+     * Filtre les items de la galerie selon le tag sélectionné.
+     * Si le tag "all" est actif, tous les items sont affichés.
+     * Sinon, seuls les items correspondant au tag cliqué sont visibles.
+     * Gère également l'état actif visuel du bouton de filtre sélectionné.
+     */
     filterByTag() {
       if ($(this).hasClass("active-tag")) {
         return;
