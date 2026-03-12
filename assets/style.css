@@ -102,7 +102,7 @@ body {
 }
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
 	color: #fff;
-	background-color: #BEB45A;
+	background-color: #672c02;
 	border-radius:0 ;
 }
 .nav-pills .nav-link {
@@ -355,3 +355,14 @@ input[type="submit"] {
 	}
 }
 
+.carousel-indicators {
+	background: radial-gradient(circle, black 0%, transparent 20%);
+}
+
+.carousel-control-next {
+	background: linear-gradient(to left, black 0%, transparent 100%);
+}
+
+.carousel-control-prev {
+	background: linear-gradient(to right, black 0%, transparent 100%);
+}
